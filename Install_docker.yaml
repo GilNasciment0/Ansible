@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Adicionar o repositório Docker
+      apt_repository:
+        repo: deb [arch=amd64] <https://download.docker.com/linux/ubuntu>
+        state: present
+        update_cache: yes
+        filename: docker
+
+    - name: Instalar o Docker
+      apt:
+        name: docker-ce
+        state: latest
+
+    - name: Instalar o Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Adicionar usuário ao grupo Docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Reiniciar o serviço do Docker
+      service:
+        name: docker
+        state: restarted
