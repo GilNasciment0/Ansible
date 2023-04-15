@@ -6,7 +6,7 @@
     common_packages_debian:
       - git
       - curl
-      - zabbix-agent
+      - zabbix-agent2
       - tar
       - gzip
       - htop
@@ -14,10 +14,10 @@
       - tree
       - vim
       - nano
-    common_packages_centos:
+          common_packages_centos:
       - git
       - curl
-      - zabbix-agent
+      - zabbix-agent2
       - tar
       - gzip
       - htop
