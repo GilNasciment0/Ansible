@@ -1,0 +1,37 @@
+- name: Criar usuário
+  hosts: all
+  vars:
+    username: user-ish-siem
+    password: RvTo@2223##1222
+    comment: "usuário do SIEM"
+  tasks:
+  - name: Adicionar usuário em distribuições baseadas em Debian
+    become: true
+    when: "'Debian' in ansible_distribution"
+    user:
+      name: "{{ username }}"
+      comment: "{{ comment }}"
+      #password: "{{ password }}"
+      password: "{{ password | password_hash('sha512') }}"
+      groups: sudo
+      shell: /bin/bash
+  - name: Adicionar usuário em distribuições baseadas em CentOS
+    become: true
+    when: "'CentOS' in ansible_distribution"
+    user:
+      name: "{{ username }}"
+      comment: "{{ comment }}"
+      #password: "{{ password }}"
+      password: "{{ password | password_hash('sha512') }}"
+      groups: wheel
+      shell: /bin/bash
+  - name: Adicionar usuário em distribuições baseadas em OracleLinux
+    become: true
+    when: "'OracleLinux' in ansible_distribution"
+    user:
+      name: "{{ username }}"
+      comment: "{{ comment }}"
+      #password: "{{ password }}"
+      password: "{{ password | password_hash('sha512') }}"
+      groups: wheel
+      shell: /bin/bash
