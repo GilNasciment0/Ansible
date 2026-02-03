@@ -1,37 +1,29 @@
-- name: Criar usuário
+---
+- name: Criar usuario
   hosts: all
+  become: true
   vars:
     username: user-ish-siem
-    password: RvTo@2223##1222
-    comment: "usuário do SIEM"
+    user_password: ""
+    comment: "usuario do SIEM"
+    user_groups_debian: sudo
+    user_groups_redhat: wheel
   tasks:
-  - name: Adicionar usuário em distribuições baseadas em Debian
-    become: true
-    when: "'Debian' in ansible_distribution"
-    user:
-      name: "{{ username }}"
-      comment: "{{ comment }}"
-      #password: "{{ password }}"
-      password: "{{ password | password_hash('sha512') }}"
-      groups: sudo
-      shell: /bin/bash
-  - name: Adicionar usuário em distribuições baseadas em CentOS
-    become: true
-    when: "'CentOS' in ansible_distribution"
-    user:
-      name: "{{ username }}"
-      comment: "{{ comment }}"
-      #password: "{{ password }}"
-      password: "{{ password | password_hash('sha512') }}"
-      groups: wheel
-      shell: /bin/bash
-  - name: Adicionar usuário em distribuições baseadas em OracleLinux
-    become: true
-    when: "'OracleLinux' in ansible_distribution"
-    user:
-      name: "{{ username }}"
-      comment: "{{ comment }}"
-      #password: "{{ password }}"
-      password: "{{ password | password_hash('sha512') }}"
-      groups: wheel
-      shell: /bin/bash
+    - name: Validar senha do usuario
+      ansible.builtin.assert:
+        that:
+          - user_password | length > 0
+        fail_msg: "Defina a variavel user_password (idealmente via Vault ou Semaphore)."
+
+    - name: Definir grupo por familia
+      ansible.builtin.set_fact:
+        user_groups: "{{ user_groups_debian if ansible_os_family == 'Debian' else user_groups_redhat }}"
+
+    - name: Criar usuario
+      ansible.builtin.user:
+        name: "{{ username }}"
+        comment: "{{ comment }}"
+        password: "{{ user_password | password_hash('sha512') }}"
+        groups: "{{ user_groups }}"
+        shell: /bin/bash
+      no_log: true
