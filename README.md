@@ -2,6 +2,12 @@
 
 Este repositorio contem playbooks Ansible para uso no Semaphore.
 
+## Estrutura
+
+- `playbooks/`: playbooks Ansible.
+- `inventory_ips.ini`: exemplo de inventario por IP.
+- `inventory_hostnames.ini`: exemplo de inventario por hostname.
+
 ## Playbooks
 
 1. `playbooks/limpar_logs_docker.yml`
@@ -11,13 +17,32 @@ Este repositorio contem playbooks Ansible para uso no Semaphore.
    - Detecta `zabbix-agent` ou `zabbix-agent2`.
    - Verifica se o servico esta ativo e inicia se estiver inativo.
 
+3. `playbooks/common.yaml`
+   - Atualiza pacotes em Debian/Ubuntu e RedHat.
+   - Instala pacotes basicos.
+   - Cria usuario padrao (senha via `user_password`).
+
+4. `playbooks/Install_docker.yaml`
+   - Instala Docker Engine e plugins oficiais em Debian/Ubuntu.
+   - Configura repositorio e keyring.
+   - Adiciona usuario ao grupo `docker`.
+
+5. `playbooks/criaruser.yaml`
+   - Cria usuario com senha obrigatoria via `user_password`.
+   - Ajusta grupo conforme familia (Debian/RedHat).
+
 ## Inventario
 
-O inventario e gerenciado diretamente no Semaphore (grupo `homologacao`).
+Os inventarios de exemplo estao na raiz do repositorio. No Semaphore, voce pode usar:
+
+- `inventory_ips.ini`
+- `inventory_hostnames.ini`
+
+Ou continuar usando inventarios gerenciados diretamente na interface do Semaphore.
 
 ## Como usar no Semaphore
 
 1. Crie/edite um template apontando para este repositorio.
-2. Selecione o inventario `homologacao`.
-3. Escolha o playbook desejado.
+2. Selecione o inventario desejado.
+3. Escolha o playbook em `playbooks/`.
 
