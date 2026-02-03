@@ -1,0 +1,21 @@
+all:
+  children:
+    WEB:
+      hosts:
+        web-01:
+        web-02:
+        web-03:
+    DB:
+      hosts:
+        db-01:
+        db-02:
+    AD:
+      hosts:
+        ad-01:
+    APP:
+      hosts:
+        app-01:
+        app-02:
+    MONITORING:
+      hosts:
+        mon-01:

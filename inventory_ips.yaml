@@ -1,0 +1,21 @@
+all:
+  children:
+    WEB:
+      hosts:
+        10.0.0.1:
+        10.0.0.2:
+        10.0.0.3:
+    DB:
+      hosts:
+        10.0.1.1:
+        10.0.1.2:
+    AD:
+      hosts:
+        10.0.2.1:
+    APP:
+      hosts:
+        10.0.3.1:
+        10.0.3.2:
+    MONITORING:
+      hosts:
+        10.0.4.1:
