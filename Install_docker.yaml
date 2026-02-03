@@ -1,31 +1,72 @@
 ---
-- hosts: all
+- name: Instalar Docker em Debian/Ubuntu
+  hosts: all
   become: true
+  vars:
+    docker_user: "{{ ansible_user_id | default('') }}"
+    docker_repo_base: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
+    docker_keyring_path: /etc/apt/keyrings/docker.gpg
   tasks:
-    - name: Adicionar o repositório Docker
-      apt_repository:
-        repo: deb [arch=amd64] <https://download.docker.com/linux/ubuntu>
+    - name: Validar sistema suportado
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+          - ansible_distribution in ["Debian", "Ubuntu"]
+        fail_msg: "Este playbook suporta apenas Debian e Ubuntu."
+
+    - name: Validar usuario para grupo docker
+      ansible.builtin.assert:
+        that:
+          - docker_user | length > 0
+        fail_msg: "Defina a variavel docker_user ou execute como um usuario valido."
+
+    - name: Instalar dependencias do repositorio
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
         state: present
-        update_cache: yes
+        update_cache: true
+
+    - name: Criar diretorio de keyrings
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Baixar chave GPG do Docker
+      ansible.builtin.get_url:
+        url: "{{ docker_repo_base }}/gpg"
+        dest: "{{ docker_keyring_path }}"
+        mode: "0644"
+
+    - name: Adicionar repositorio Docker
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by={{ docker_keyring_path }}] {{ docker_repo_base }} {{ ansible_distribution_release }} stable"
+        state: present
+        update_cache: true
         filename: docker
 
-    - name: Instalar o Docker
-      apt:
-        name: docker-ce
-        state: latest
-
-    - name: Instalar o Docker Compose
-      apt:
-        name: docker-compose
+    - name: Instalar Docker Engine e plugins
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
         state: present
 
-    - name: Adicionar usuário ao grupo Docker
-      user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: yes
-
-    - name: Reiniciar o serviço do Docker
-      service:
+    - name: Garantir servico do Docker ativo
+      ansible.builtin.service:
         name: docker
-        state: restarted
+        state: started
+        enabled: true
+
+    - name: Adicionar usuario ao grupo docker
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
