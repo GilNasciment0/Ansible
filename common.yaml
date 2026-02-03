@@ -14,7 +14,7 @@
       - tree
       - vim
       - nano
-          common_packages_centos:
+    common_packages_redhat:
       - git
       - curl
       - zabbix-agent2
@@ -25,32 +25,56 @@
       - tree
       - vim
       - nano
-    user_password: "senha_segura"
+    user_name: infra
+    user_password: ""
+    user_groups_debian: sudo
+    user_groups_redhat: wheel
   tasks:
-  - name: Update e Upgrade em distribuições Debian
-    when: ansible_os_family == "Debian"
-    apt:
-      update_cache: yes
-      upgrade: dist
-  - name: Update e Upgrade em distribuições CentOS
-    when: ansible_os_family == "RedHat"
-    yum:
-      name: '*'
-      state: latest
-      exclude: kernel*
-  - name: Instalação de pacotes em distribuições Debian
-    when: ansible_os_family == "Debian"
-    apt:
-      name: "{{ common_packages_debian }}"
-      state: present
-  - name: Instalação de pacotes em distribuições CentOS
-    when: ansible_os_family == "RedHat"
-    yum:
-      name: "{{ common_packages_centos }}"
-      state: present
-  - name: Criação de usuário padrão
-    user:
-      name: infra
-      shell: /bin/bash
-      groups: sudo
-      password: "{{ user_password | password_hash('sha512') }}"
+    - name: Validar senha do usuário
+      ansible.builtin.assert:
+        that:
+          - user_password | length > 0
+        fail_msg: "Defina a variavel user_password (idealmente via Vault ou Semaphore)."
+
+    - name: Atualizar cache APT
+      when: ansible_os_family == "Debian"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Atualizar cache YUM/DNF
+      when: ansible_os_family == "RedHat"
+      ansible.builtin.command: yum makecache
+      changed_when: false
+
+    - name: Atualizar pacotes Debian
+      when: ansible_os_family == "Debian"
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Atualizar pacotes RedHat
+      when: ansible_os_family == "RedHat"
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+        exclude: kernel*
+
+    - name: Instalar pacotes Debian
+      when: ansible_os_family == "Debian"
+      ansible.builtin.package:
+        name: "{{ common_packages_debian }}"
+        state: present
+
+    - name: Instalar pacotes RedHat
+      when: ansible_os_family == "RedHat"
+      ansible.builtin.package:
+        name: "{{ common_packages_redhat }}"
+        state: present
+
+    - name: Criar usuario padrao
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        shell: /bin/bash
+        groups: "{{ user_groups_debian if ansible_os_family == 'Debian' else user_groups_redhat }}"
+        password: "{{ user_password | password_hash('sha512') }}"
+      no_log: true
