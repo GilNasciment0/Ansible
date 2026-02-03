@@ -1,0 +1,34 @@
+---
+- name: Verificar Zabbix Agent e iniciar se necessario
+  hosts: homologacao
+  become: true
+  tasks:
+    - name: Detectar unidade do Zabbix Agent (agent ou agent2)
+      ansible.builtin.shell: >
+        systemctl list-unit-files | awk '/^zabbix-agent2?\.service/ {print $1}' | head -n 1
+      register: zbx_unit
+      changed_when: false
+
+    - name: Definir unidade do Zabbix Agent
+      ansible.builtin.set_fact:
+        zbx_service: "{{ zbx_unit.stdout | default('') | trim }}"
+
+    - name: Informar se Zabbix Agent nao esta instalado
+      ansible.builtin.debug:
+        msg: "Zabbix Agent nao encontrado (zabbix-agent ou zabbix-agent2)."
+      when: zbx_service == ""
+
+    - name: Verificar se o Zabbix Agent esta ativo
+      ansible.builtin.command: "systemctl is-active {{ zbx_service }}"
+      register: zbx_active
+      changed_when: false
+      failed_when: false
+      when: zbx_service != ""
+
+    - name: Iniciar Zabbix Agent se estiver inativo
+      ansible.builtin.service:
+        name: "{{ zbx_service }}"
+        state: started
+      when:
+        - zbx_service != ""
+        - zbx_active.stdout != "active"

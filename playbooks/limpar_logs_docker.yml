@@ -1,0 +1,11 @@
+---
+- name: Limpar logs do Docker
+  hosts: homologacao
+  become: true
+  tasks:
+    - name: Truncar logs JSON dos containers Docker
+      ansible.builtin.shell: >
+        find /var/lib/docker/containers -type f -name "*-json.log" -exec truncate -s 0 {} +
+      args:
+        warn: false
+      changed_when: true
