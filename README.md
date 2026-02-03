@@ -5,8 +5,8 @@ Este repositorio contem playbooks Ansible para uso no Semaphore.
 ## Estrutura
 
 - `playbooks/`: playbooks Ansible.
-- `inventory_ips.ini`: exemplo de inventario por IP.
-- `inventory_hostnames.ini`: exemplo de inventario por hostname.
+- `inventory_ips.yaml`: exemplo de inventario por IP.
+- `inventory_hostnames.yaml`: exemplo de inventario por hostname.
 
 ## Playbooks
 
@@ -31,12 +31,23 @@ Este repositorio contem playbooks Ansible para uso no Semaphore.
    - Cria usuario com senha obrigatoria via `user_password`.
    - Ajusta grupo conforme familia (Debian/RedHat).
 
+6. `playbooks/hardening_basico.yaml`
+   - Hardening basico multi-distro.
+   - Firewall habilitado para Debian/RedHat.
+   - PF no FreeBSD desativado por padrao.
+
+7. `playbooks/firewall_basico.yaml`
+   - Firewall basico multi-distro.
+   - UFW para Debian/Ubuntu.
+   - Firewalld para RedHat/CentOS.
+   - PF no FreeBSD desativado por padrao.
+
 ## Inventario
 
-Os inventarios de exemplo estao na raiz do repositorio. No Semaphore, voce pode usar:
+Os inventarios de exemplo estao na raiz do repositorio em formato YAML. No Semaphore, voce pode usar:
 
-- `inventory_ips.ini`
-- `inventory_hostnames.ini`
+- `inventory_ips.yaml`
+- `inventory_hostnames.yaml`
 
 Ou continuar usando inventarios gerenciados diretamente na interface do Semaphore.
 
